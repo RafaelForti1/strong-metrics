@@ -1,10 +1,26 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Search, Plus, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+interface Product {
+  id: number;
+  name: string;
+  category: string;
+  stock: number;
+  minStock: number;
+  price: number;
+}
+
 const Inventory = () => {
+  // 🔹 Estados
+  const [searchTerm, setSearchTerm] = useState(""); // busca
+  const [productFormOpen, setProductFormOpen] = useState(false); // controla modal de produto
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+
+  // 🔹 Produtos (mock)
   const products = [
     {
       id: 1,
@@ -12,7 +28,7 @@ const Inventory = () => {
       category: "Suplementos",
       stock: 45,
       minStock: 20,
-      price: 89.90,
+      price: 89.9,
     },
     {
       id: 2,
@@ -20,7 +36,7 @@ const Inventory = () => {
       category: "Suplementos",
       stock: 8,
       minStock: 15,
-      price: 65.00,
+      price: 65.0,
     },
     {
       id: 3,
@@ -28,7 +44,7 @@ const Inventory = () => {
       category: "Vestuário",
       stock: 32,
       minStock: 10,
-      price: 49.90,
+      price: 49.9,
     },
     {
       id: 4,
@@ -36,7 +52,7 @@ const Inventory = () => {
       category: "Acessórios",
       stock: 18,
       minStock: 10,
-      price: 29.90,
+      price: 29.9,
     },
     {
       id: 5,
@@ -44,30 +60,46 @@ const Inventory = () => {
       category: "Acessórios",
       stock: 5,
       minStock: 15,
-      price: 19.90,
+      price: 19.9,
     },
   ];
 
+  // 🔹 Filtro de produtos
+  const filteredProducts = products.filter((p) =>
+    p.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div className="space-y-6">
+      {/* Cabeçalho */}
       <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Controle de Estoque</h1>
-          <p className="text-muted-foreground mt-1">Gerencie produtos e suplementos</p>
+          <h1 className="text-3xl font-bold text-foreground">
+            Controle de Estoque
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Gerencie produtos e suplementos
+          </p>
         </div>
-        <Button className="gap-2" onClick={() => {
-          setEditingProduct(null);
-          setProductFormOpen(true);
-        }}>
+        <Button
+          className="gap-2"
+          onClick={() => {
+            setEditingProduct(null);
+            setProductFormOpen(true);
+          }}
+        >
           <Plus className="h-4 w-4" />
           Adicionar Produto
         </Button>
       </div>
 
+      {/* Cards de métricas */}
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Produtos</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total de Produtos
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{products.length}</div>
@@ -92,12 +124,13 @@ const Inventory = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-warning">
-              {products.filter(p => p.stock < p.minStock).length} itens
+              {products.filter((p) => p.stock < p.minStock).length} itens
             </div>
           </CardContent>
         </Card>
       </div>
 
+      {/* Lista de produtos */}
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
@@ -112,14 +145,18 @@ const Inventory = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {products.map((product) => (
+            {filteredProducts.map((product) => (
               <div
                 key={product.id}
                 className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-accent/50 transition-colors"
               >
                 <div className="flex-1">
-                  <h3 className="font-semibold text-foreground">{product.name}</h3>
-                  <p className="text-sm text-muted-foreground">{product.category}</p>
+                  <h3 className="font-semibold text-foreground">
+                    {product.name}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    {product.category}
+                  </p>
                 </div>
                 <div className="flex items-center gap-6">
                   <div className="text-right">
@@ -144,6 +181,15 @@ const Inventory = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* 🔹 Exemplo: modal fake só para não quebrar */}
+      {productFormOpen && (
+        <div className="p-4 border rounded bg-background">
+          <h2 className="font-bold">Formulário de Produto</h2>
+          <p>{editingProduct ? "Editando produto" : "Novo produto"}</p>
+          <Button onClick={() => setProductFormOpen(false)}>Fechar</Button>
+        </div>
+      )}
     </div>
   );
 };

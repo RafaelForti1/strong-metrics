@@ -1,10 +1,22 @@
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
@@ -15,15 +27,64 @@ interface TransactionFormProps {
   onSuccess: () => void;
 }
 
-const incomeCategories = ["Mensalidade", "Produto", "Personal Trainer", "Avaliação", "Outros"];
-const expenseCategories = ["Aluguel", "Salários", "Equipamentos", "Manutenção", "Marketing", "Utilities", "Outros"];
-const paymentMethods = ["Dinheiro", "Débito", "Crédito", "PIX", "Transferência"];
+interface Client {
+  id: string;
+  full_name: string;
+}
 
-export const TransactionForm = ({ open, onOpenChange, onSuccess }: TransactionFormProps) => {
+type TransactionType = "income" | "expense";
+type PaymentMethod =
+  | "Dinheiro"
+  | "Débito"
+  | "Crédito"
+  | "PIX"
+  | "Transferência";
+
+interface TransactionFormState {
+  type: TransactionType;
+  category: string;
+  description: string;
+  amount: string; // mantemos como string para bind do input
+  payment_method: PaymentMethod | "";
+  client_id: string;
+  transaction_date: string;
+}
+
+const incomeCategories = [
+  "Mensalidade",
+  "Produto",
+  "Personal Trainer",
+  "Avaliação",
+  "Outros",
+] as const;
+
+const expenseCategories = [
+  "Aluguel",
+  "Salários",
+  "Equipamentos",
+  "Manutenção",
+  "Marketing",
+  "Utilities",
+  "Outros",
+] as const;
+
+const paymentMethods: PaymentMethod[] = [
+  "Dinheiro",
+  "Débito",
+  "Crédito",
+  "PIX",
+  "Transferência",
+];
+
+export const TransactionForm = ({
+  open,
+  onOpenChange,
+  onSuccess,
+}: TransactionFormProps) => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [clients, setClients] = useState<any[]>([]);
-  const [formData, setFormData] = useState({
+  const [clients, setClients] = useState<Client[]>([]);
+  const [formData, setFormData] = useState<TransactionFormState>({
     type: "income",
     category: "",
     description: "",
@@ -42,7 +103,8 @@ export const TransactionForm = ({ open, onOpenChange, onSuccess }: TransactionFo
       .from("clients")
       .select("id, full_name")
       .order("full_name");
-    setClients(data || []);
+
+    setClients((data as Client[]) || []);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -60,7 +122,9 @@ export const TransactionForm = ({ open, onOpenChange, onSuccess }: TransactionFo
       created_by: user?.id,
     };
 
-    const { error } = await supabase.from("transactions").insert([transactionData]);
+    const { error } = await supabase
+      .from("transactions")
+      .insert([transactionData]);
 
     if (error) {
       toast.error("Erro ao registrar transação");
@@ -81,23 +145,24 @@ export const TransactionForm = ({ open, onOpenChange, onSuccess }: TransactionFo
     setLoading(false);
   };
 
-  const categories = formData.type === "income" ? incomeCategories : expenseCategories;
+  const categories =
+    formData.type === "income" ? incomeCategories : expenseCategories;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Nova Transação</DialogTitle>
-          <DialogDescription>
-            Registre uma receita ou despesa
-          </DialogDescription>
+          <DialogDescription>Registre uma receita ou despesa</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="type">Tipo *</Label>
-            <Select 
-              value={formData.type} 
-              onValueChange={(value) => setFormData({ ...formData, type: value, category: "" })}
+            <Select
+              value={formData.type}
+              onValueChange={(value: TransactionType) =>
+                setFormData({ ...formData, type: value, category: "" })
+              }
               required
             >
               <SelectTrigger>
@@ -111,7 +176,13 @@ export const TransactionForm = ({ open, onOpenChange, onSuccess }: TransactionFo
           </div>
           <div className="space-y-2">
             <Label htmlFor="category">Categoria *</Label>
-            <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })} required>
+            <Select
+              value={formData.category}
+              onValueChange={(value) =>
+                setFormData({ ...formData, category: value })
+              }
+              required
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Selecione uma categoria" />
               </SelectTrigger>
@@ -132,7 +203,9 @@ export const TransactionForm = ({ open, onOpenChange, onSuccess }: TransactionFo
                 type="number"
                 step="0.01"
                 value={formData.amount}
-                onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, amount: e.target.value })
+                }
                 required
               />
             </div>
@@ -142,7 +215,12 @@ export const TransactionForm = ({ open, onOpenChange, onSuccess }: TransactionFo
                 id="transaction_date"
                 type="date"
                 value={formData.transaction_date}
-                onChange={(e) => setFormData({ ...formData, transaction_date: e.target.value })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    transaction_date: e.target.value,
+                  })
+                }
                 required
               />
             </div>
@@ -150,7 +228,12 @@ export const TransactionForm = ({ open, onOpenChange, onSuccess }: TransactionFo
           {formData.type === "income" && (
             <div className="space-y-2">
               <Label htmlFor="client">Cliente (opcional)</Label>
-              <Select value={formData.client_id} onValueChange={(value) => setFormData({ ...formData, client_id: value })}>
+              <Select
+                value={formData.client_id}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, client_id: value })
+                }
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione um cliente" />
                 </SelectTrigger>
@@ -166,7 +249,12 @@ export const TransactionForm = ({ open, onOpenChange, onSuccess }: TransactionFo
           )}
           <div className="space-y-2">
             <Label htmlFor="payment_method">Forma de Pagamento</Label>
-            <Select value={formData.payment_method} onValueChange={(value) => setFormData({ ...formData, payment_method: value })}>
+            <Select
+              value={formData.payment_method}
+              onValueChange={(value: PaymentMethod) =>
+                setFormData({ ...formData, payment_method: value })
+              }
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Selecione" />
               </SelectTrigger>
@@ -184,7 +272,9 @@ export const TransactionForm = ({ open, onOpenChange, onSuccess }: TransactionFo
             <Textarea
               id="description"
               value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, description: e.target.value })
+              }
               rows={3}
             />
           </div>
@@ -196,3 +286,4 @@ export const TransactionForm = ({ open, onOpenChange, onSuccess }: TransactionFo
     </Dialog>
   );
 };
+export default TransactionForm;
