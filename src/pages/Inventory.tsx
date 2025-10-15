@@ -8,18 +8,23 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ProductForm } from "@/components/ProductForm";
 
-/**
- * Inventory page
- *
- * This component now loads products from Supabase instead of using a hardcoded array.
- * It also exposes the ability to add, edit and delete products via the ProductForm component.
- */
+export interface Product {
+  id: string;
+  name: string;
+  category?: string;
+  description?: string;
+  price: number;
+  stock_quantity?: number;
+  min_stock?: number;
+  created_at?: string;
+}
+
 const Inventory = () => {
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [productFormOpen, setProductFormOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<any>(null);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   useEffect(() => {
     loadProducts();
@@ -50,19 +55,23 @@ const Inventory = () => {
     }
   };
 
-  const handleEdit = (product: any) => {
+  const handleEdit = (product: Product) => {
     setEditingProduct(product);
     setProductFormOpen(true);
   };
 
-  const filteredProducts = products.filter((product) =>
-    product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (product.category || "").toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredProducts = products.filter(
+    (product) =>
+      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (product.category || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Aggregate metrics
   const totalProducts = products.length;
-  const stockTotal = products.reduce((acc, p) => acc + (p.stock_quantity ?? 0), 0);
+  const stockTotal = products.reduce(
+    (acc, p) => acc + (p.stock_quantity ?? 0),
+    0
+  );
   const lowStockCount = products.filter(
     (p) => (p.stock_quantity ?? 0) < (p.min_stock ?? 0)
   ).length;
@@ -71,8 +80,12 @@ const Inventory = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Controle de Estoque</h1>
-          <p className="text-muted-foreground mt-1">Gerencie produtos e suplementos</p>
+          <h1 className="text-3xl font-bold text-foreground">
+            Controle de Estoque
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Gerencie produtos e suplementos
+          </p>
         </div>
         <Button
           className="gap-2"
@@ -90,7 +103,9 @@ const Inventory = () => {
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Produtos</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total de Produtos
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalProducts}</div>
@@ -112,7 +127,9 @@ const Inventory = () => {
             <AlertTriangle className="h-4 w-4 text-warning" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-warning">{lowStockCount} itens</div>
+            <div className="text-2xl font-bold text-warning">
+              {lowStockCount} itens
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -137,8 +154,12 @@ const Inventory = () => {
                 className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-accent/50 transition-colors"
               >
                 <div className="flex-1">
-                  <h3 className="font-semibold text-foreground">{product.name}</h3>
-                  <p className="text-sm text-muted-foreground">{product.category}</p>
+                  <h3 className="font-semibold text-foreground">
+                    {product.name}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    {product.category}
+                  </p>
                   {product.description && (
                     <p className="text-xs text-muted-foreground mt-1">
                       {product.description}
@@ -154,7 +175,7 @@ const Inventory = () => {
                       Estoque: {product.stock_quantity ?? 0} un.
                     </p>
                   </div>
-                  { (product.stock_quantity ?? 0) < (product.min_stock ?? 0) ? (
+                  {(product.stock_quantity ?? 0) < (product.min_stock ?? 0) ? (
                     <Badge variant="destructive" className="gap-1">
                       <AlertTriangle className="h-3 w-3" />
                       Baixo
@@ -187,7 +208,9 @@ const Inventory = () => {
               </p>
             )}
             {loading && (
-              <p className="text-center text-muted-foreground py-8">Carregando...</p>
+              <p className="text-center text-muted-foreground py-8">
+                Carregando...
+              </p>
             )}
           </div>
         </CardContent>
