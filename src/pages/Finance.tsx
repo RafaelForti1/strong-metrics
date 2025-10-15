@@ -157,6 +157,12 @@ const Finance = () => {
           </div>
         </CardContent>
       </Card>
+
+      <TransactionForm
+        open={transactionFormOpen}
+        onOpenChange={setTransactionFormOpen}
+        onSuccess={loadTransactions}
+      />
     </div>
   );
 };
