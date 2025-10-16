@@ -9,6 +9,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Shield, Plus, Trash2, Edit } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { UserManagement } from "@/components/UserManagement";
 
 const Admin = () => {
   const [plans, setPlans] = useState<any[]>([]);
@@ -113,152 +115,165 @@ const Admin = () => {
         </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <div>
-              <CardTitle>Planos Disponíveis</CardTitle>
-              <CardDescription>Gerencie os planos oferecidos pela academia</CardDescription>
-            </div>
-            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-              <DialogTrigger asChild>
-                <Button className="gap-2" onClick={() => {
-                  setEditingPlan(null);
-                  setFormData({ name: "", description: "", price: "", duration_months: "", features: "" });
-                }}>
-                  <Plus className="h-4 w-4" />
-                  Novo Plano
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[500px]">
-                <DialogHeader>
-                  <DialogTitle>{editingPlan ? "Editar Plano" : "Novo Plano"}</DialogTitle>
-                  <DialogDescription>
-                    Preencha as informações do plano
-                  </DialogDescription>
-                </DialogHeader>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Nome do Plano</Label>
-                    <Input
-                      id="name"
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="description">Descrição</Label>
-                    <Textarea
-                      id="description"
-                      value={formData.description}
-                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="price">Preço (R$)</Label>
-                      <Input
-                        id="price"
-                        type="number"
-                        step="0.01"
-                        value={formData.price}
-                        onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="duration">Duração (meses)</Label>
-                      <Input
-                        id="duration"
-                        type="number"
-                        value={formData.duration_months}
-                        onChange={(e) => setFormData({ ...formData, duration_months: e.target.value })}
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="features">Recursos (um por linha)</Label>
-                    <Textarea
-                      id="features"
-                      value={formData.features}
-                      onChange={(e) => setFormData({ ...formData, features: e.target.value })}
-                      placeholder="Acesso livre&#10;Personal trainer&#10;Avaliação física"
-                      rows={4}
-                    />
-                  </div>
-                  <Button type="submit" className="w-full" disabled={loading}>
-                    {loading ? "Salvando..." : editingPlan ? "Atualizar" : "Criar Plano"}
-                  </Button>
-                </form>
-              </DialogContent>
-            </Dialog>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {plans.map((plan) => (
-              <Card key={plan.id} className="relative">
-                <CardHeader>
-                  <CardTitle className="flex justify-between items-start">
-                    <span>{plan.name}</span>
-                    <Badge variant={plan.is_active ? "default" : "secondary"}>
-                      {plan.is_active ? "Ativo" : "Inativo"}
-                    </Badge>
-                  </CardTitle>
-                  <CardDescription>{plan.description}</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <p className="text-2xl font-bold text-primary">
-                      R$ {plan.price.toFixed(2)}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {plan.duration_months} {plan.duration_months === 1 ? "mês" : "meses"}
-                    </p>
-                  </div>
-                  {plan.features && plan.features.length > 0 && (
-                    <ul className="space-y-1 text-sm">
-                      {plan.features.map((feature: string, idx: number) => (
-                        <li key={idx} className="flex items-center gap-2">
-                          <span className="h-1.5 w-1.5 rounded-full bg-primary"></span>
-                          {feature}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                  <div className="flex gap-2 pt-4">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEdit(plan)}
-                      className="flex-1"
-                    >
-                      <Edit className="h-4 w-4 mr-1" />
-                      Editar
+      <Tabs defaultValue="plans" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="plans">Planos</TabsTrigger>
+          <TabsTrigger value="users">Usuários</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="plans">
+          <Card>
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <div>
+                  <CardTitle>Planos Disponíveis</CardTitle>
+                  <CardDescription>Gerencie os planos oferecidos pela academia</CardDescription>
+                </div>
+                <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="gap-2" onClick={() => {
+                      setEditingPlan(null);
+                      setFormData({ name: "", description: "", price: "", duration_months: "", features: "" });
+                    }}>
+                      <Plus className="h-4 w-4" />
+                      Novo Plano
                     </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleDelete(plan.id)}
-                      className="flex-1"
-                    >
-                      <Trash2 className="h-4 w-4 mr-1" />
-                      Excluir
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-          {plans.length === 0 && !loading && (
-            <p className="text-center text-muted-foreground py-8">
-              Nenhum plano cadastrado ainda
-            </p>
-          )}
-        </CardContent>
-      </Card>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[500px]">
+                    <DialogHeader>
+                      <DialogTitle>{editingPlan ? "Editar Plano" : "Novo Plano"}</DialogTitle>
+                      <DialogDescription>
+                        Preencha as informações do plano
+                      </DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="name">Nome do Plano</Label>
+                        <Input
+                          id="name"
+                          value={formData.name}
+                          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="description">Descrição</Label>
+                        <Textarea
+                          id="description"
+                          value={formData.description}
+                          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="price">Preço (R$)</Label>
+                          <Input
+                            id="price"
+                            type="number"
+                            step="0.01"
+                            value={formData.price}
+                            onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="duration">Duração (meses)</Label>
+                          <Input
+                            id="duration"
+                            type="number"
+                            value={formData.duration_months}
+                            onChange={(e) => setFormData({ ...formData, duration_months: e.target.value })}
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="features">Recursos (um por linha)</Label>
+                        <Textarea
+                          id="features"
+                          value={formData.features}
+                          onChange={(e) => setFormData({ ...formData, features: e.target.value })}
+                          placeholder="Acesso livre&#10;Personal trainer&#10;Avaliação física"
+                          rows={4}
+                        />
+                      </div>
+                      <Button type="submit" className="w-full" disabled={loading}>
+                        {loading ? "Salvando..." : editingPlan ? "Atualizar" : "Criar Plano"}
+                      </Button>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {plans.map((plan) => (
+                  <Card key={plan.id} className="relative">
+                    <CardHeader>
+                      <CardTitle className="flex justify-between items-start">
+                        <span>{plan.name}</span>
+                        <Badge variant={plan.is_active ? "default" : "secondary"}>
+                          {plan.is_active ? "Ativo" : "Inativo"}
+                        </Badge>
+                      </CardTitle>
+                      <CardDescription>{plan.description}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div>
+                        <p className="text-2xl font-bold text-primary">
+                          R$ {plan.price.toFixed(2)}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {plan.duration_months} {plan.duration_months === 1 ? "mês" : "meses"}
+                        </p>
+                      </div>
+                      {plan.features && plan.features.length > 0 && (
+                        <ul className="space-y-1 text-sm">
+                          {plan.features.map((feature: string, idx: number) => (
+                            <li key={idx} className="flex items-center gap-2">
+                              <span className="h-1.5 w-1.5 rounded-full bg-primary"></span>
+                              {feature}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                      <div className="flex gap-2 pt-4">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEdit(plan)}
+                          className="flex-1"
+                        >
+                          <Edit className="h-4 w-4 mr-1" />
+                          Editar
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleDelete(plan.id)}
+                          className="flex-1"
+                        >
+                          <Trash2 className="h-4 w-4 mr-1" />
+                          Excluir
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+              {plans.length === 0 && !loading && (
+                <p className="text-center text-muted-foreground py-8">
+                  Nenhum plano cadastrado ainda
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="users">
+          <UserManagement />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

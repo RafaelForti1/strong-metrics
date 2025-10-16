@@ -78,8 +78,7 @@ const Dashboard = () => {
 
     const activeClientsPromise = supabase
       .from("clients")
-      .select("id", { count: "exact", head: true })
-      .eq("status", "active");
+      .select("id", { count: "exact", head: true });
 
     const totalClientsPromise = supabase
       .from("clients")
@@ -89,23 +88,22 @@ const Dashboard = () => {
       .from("products")
       .select("id", { count: "exact", head: true });
 
-    const lowStockPromise = supabase
+    const productsDataPromise = supabase
       .from("products")
-      .select("id", { count: "exact", head: true })
-      .lt("quantity", 5);
+      .select("stock_quantity, min_stock");
 
     const [
       txRes,
       activeClientsRes,
       totalClientsRes,
       totalProductsRes,
-      lowStockRes,
+      productsDataRes,
     ] = await Promise.all([
       txPromise,
       activeClientsPromise,
       totalClientsPromise,
       totalProductsPromise,
-      lowStockPromise,
+      productsDataPromise,
     ]);
 
     // 1) Transações
@@ -127,9 +125,14 @@ const Dashboard = () => {
 
     // 4) Produtos total e baixo estoque
     const totalProducts = totalProductsRes.count ?? 0;
-    const lowStock = lowStockRes.count ?? 0;
     setProductsCount(totalProducts);
-    setLowStockCount(lowStock);
+    
+    if (productsDataRes.data) {
+      const lowStock = productsDataRes.data.filter(
+        p => (p.stock_quantity ?? 0) < (p.min_stock ?? 5)
+      ).length;
+      setLowStockCount(lowStock);
+    }
   }, []);
 
   useEffect(() => {
